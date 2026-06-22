@@ -7,7 +7,12 @@ from auto_agent_kit import (
     PlanMode, ErrorReflection, ErrorCategory, RecoveryStrategy,
     ToolRouter, ToolPhase, Dashboard, AccessControl, PermissionLevel,
     MCPServer,
+    Plugin, PluginManager, LoggingPlugin, MetricsPlugin,
+    AsyncPlanMode, AsyncStepResult, run_plan,
 )
+
+
+import asyncio
 
 
 def test_plan_mode():
@@ -151,6 +156,96 @@ def test_mcp_server():
     print("  ✅ MCPServer")
 
 
+def test_plugin_system():
+    pm = PluginManager()
+
+    # 注册插件
+    log_plugin = LoggingPlugin()
+    assert pm.register(log_plugin) is True
+    assert pm.register(log_plugin) is False  # 重复注册
+    assert pm.is_registered("logging") is True
+
+    # 插件列表
+    plugins = pm.list_plugins()
+    assert len(plugins) == 1
+    assert plugins[0]["name"] == "logging"
+
+    # 钩子系统
+    def custom_hook(step: dict):
+        step["modified"] = True
+        return step
+
+    pm.add_hook("before_step", custom_hook, "test", priority=10)
+    assert pm.has_hooks("before_step") is True
+
+    # 触发钩子
+    result = pm.on_before_step({"id": "1", "description": "test"})
+    assert result["modified"] is True
+
+    # 错误钩子
+    pm.on_error(Exception("test error"), {"step": "1"})
+
+    # 移除钩子
+    assert pm.remove_hook("before_step", custom_hook) is True
+
+    # 统计
+    stats = pm.get_stats()
+    assert stats["total_plugins"] == 1
+    assert stats["total_hooks"] >= 0
+
+    # 注销
+    assert pm.unregister("logging") is True
+    assert pm.is_registered("logging") is False
+    print("  ✅ PluginSystem")
+
+
+def test_metrics_plugin():
+    mp = MetricsPlugin()
+    mp.on_after_step({"id": "1", "duration": 0.1}, "ok")
+    mp.on_after_step({"id": "2", "duration": 0.2}, "ok")
+    mp.on_error(Exception("fail"), {})
+
+    report = mp.get_report()
+    assert report["total_steps"] == 2
+    assert report["total_errors"] == 1
+    assert report["error_rate"] == 0.5
+    assert abs(report["avg_duration_ms"] - 150.0) < 0.001
+    print("  ✅ MetricsPlugin")
+
+
+def test_async_plan():
+    async def run():
+        ap = AsyncPlanMode(max_retries=1, concurrency_limit=2)
+
+        def executor(desc: str) -> str:
+            return f"done: {desc}"
+
+        results = await run_plan(ap, ["step1", "step2", "step3"], executor)
+        assert len(results) == 3
+        assert all(r.status == "ok" for r in results)
+        assert results[0].result == "done: step1"
+
+        # 并发执行
+        ap2 = AsyncPlanMode()
+        plan = ap2.create_plan("concurrent", ["a", "b", "c"])
+        concurrent_results = await ap2.execute_concurrently_async(executor, plan)
+        assert len(concurrent_results) == 3
+        assert all(r.status == "ok" for r in concurrent_results)
+
+        # 超时测试
+        async def slow_executor(desc: str) -> str:
+            await asyncio.sleep(10)
+            return "slow"
+
+        timeout_result = await ap2.execute_with_timeout(slow_executor, "slow", 0.1)
+        assert timeout_result.status == "timeout"
+
+        return True
+
+    assert asyncio.run(run()) is True
+    print("  ✅ AsyncPlan")
+
+
 if __name__ == "__main__":
     print("AutoAgentKit 测试\n")
     test_plan_mode()
@@ -159,4 +254,7 @@ if __name__ == "__main__":
     test_dashboard()
     test_access_control()
     test_mcp_server()
+    test_plugin_system()
+    test_metrics_plugin()
+    test_async_plan()
     print("\n全部测试通过 ✅")
