@@ -1,5 +1,5 @@
 """AutoAgentKit — 生产级 AI Agent 工具包"""
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 from auto_agent_kit.core.plan_mode import PlanMode, ExecutionPlan, PlanStep, StepStatus
 from auto_agent_kit.core.error_reflection import ErrorReflection, ErrorCategory, RecoveryStrategy

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "auto-agent-kit"
-version = "0.4.0"
+version = "0.4.1"
 description = "A practical Python toolkit for building production-grade AI agents with Plan-Execute, Error Reflection, Tool Routing, Dashboard, Access Control, MCP Server, StateGraph, CrewRole, and TypedAgent."
 readme = "README.md"
 requires-python = ">=3.10"
