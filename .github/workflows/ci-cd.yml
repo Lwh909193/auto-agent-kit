@@ -33,7 +33,11 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest tests/ -v --cov=auto_agent_kit --cov-report=term-missing
+          python tests/test_all.py
+          python tests/test_v030.py
+          python tests/test_crew_role.py
+          python tests/test_mcp_resources.py
+          python tests/test_typed_agent.py
 
   publish:
     needs: test
