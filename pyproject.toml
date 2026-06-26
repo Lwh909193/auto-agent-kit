@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "auto-agent-kit"
-version = "0.3.0"
-description = "A practical Python toolkit for building production-grade AI agents with Plan-Execute, Error Reflection, Tool Routing, Dashboard, Access Control, and MCP Server."
+version = "0.4.0"
+description = "A practical Python toolkit for building production-grade AI agents with Plan-Execute, Error Reflection, Tool Routing, Dashboard, Access Control, MCP Server, StateGraph, CrewRole, and TypedAgent."
 readme = "README.md"
 requires-python = ">=3.10"
-license = {text = "MIT"}
+license = "MIT"
 keywords = ["ai-agent", "llm", "toolkit", "agent-framework", "mcp"]
 
 authors = [

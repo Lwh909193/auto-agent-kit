@@ -2,12 +2,12 @@
 
 > **生产级 AI Agent 工具包** — 从实战中提炼，已在真实系统中验证。
 >
-> 6 大核心模块：PlanMode · ErrorReflection · ToolRouter · Dashboard · AccessControl · MCPServer
+> 9 大核心模块：PlanMode · ErrorReflection · ToolRouter · Dashboard · AccessControl · MCPServer · StateGraph · CrewRole · TypedAgent
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![CI/CD](https://github.com/Lwh909193/auto-agent-kit/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Lwh909193/auto-agent-kit/actions)
-[![PyPI](https://img.shields.io/badge/pypi-v0.1.0-orange)](https://pypi.org/project/auto-agent-kit/)
+[![PyPI](https://img.shields.io/badge/pypi-v0.4.0-orange)](https://pypi.org/project/auto-agent-kit/)
 
 ---
 
@@ -22,7 +22,10 @@
 | 工具太多模型选错 | **ToolRouter** — 阶段性暴露，每阶段 ≤ 8 工具 |
 | 不知道 Agent 在干什么 | **Dashboard** — 实时指标监控 |
 | 权限失控 | **AccessControl** — 4 级权限策略 |
-| 协议不标准 | **MCPServer** — JSON-RPC 2.0 + SSE |
+| 协议不标准 | **MCPServer** — JSON-RPC 2.0 + SSE，支持 Resources/Prompts 原语 |
+| 复杂工作流编排困难 | **StateGraph** — LangGraph 灵感图编排引擎，条件分支/循环/检查点 |
+| 多 Agent 协作 | **CrewRole** — 角色/任务/流程系统，顺序/层级/并行执行 |
+| 工具参数类型错误 | **TypedAgent** — 类型安全工具定义，自动参数校验与转换 |
 
 ## 快速开始
 
@@ -65,6 +68,78 @@ pip install auto-agent-kit[dashboard]
 
 # 全部功能
 pip install auto-agent-kit[all]
+```
+
+## 模块详解
+
+### 🎯 PlanMode — 计划执行模式
+
+### 🔀 StateGraph — 图编排引擎
+
+LangGraph 灵感纯 Python 实现，零外部依赖。
+
+- **3 种边类型**：NORMAL / CONDITIONAL / LOOP
+- **6 种节点类型**：TASK / DECISION / PARALLEL / INPUT / OUTPUT / SUBGRAPH
+- **3 个便捷构建器**：sequential() / agent_loop() / branching()
+- **检查点系统**：自动保存/恢复执行状态
+- **Mermaid 可视化**：自动生成流程图
+- **错误容忍**：失败节点自动跳过
+
+```python
+from auto_agent_kit import StateGraph, sequential, agent_loop
+
+# 顺序执行
+graph = sequential(["step1", "step2", "step3"])
+result = graph.invoke({"input": "data"})
+
+# Agent 循环
+agent = agent_loop("analyze", max_iterations=5)
+for chunk in agent.stream({"task": "分析报告"}):
+    print(chunk)
+```
+
+### 👥 CrewRole — 角色协作系统
+
+CrewAI 灵感角色定义框架。
+
+- **Role**：角色定义（名称/目标/工具/系统提示）
+- **Task**：任务定义（描述/角色/期望输出/上下文）
+- **Crew**：团队编排（顺序/层级/并行/自定义流程）
+- **便捷工厂**：create_analysis_team() / create_development_team()
+
+```python
+from auto_agent_kit import Role, CrewTask, Crew, ProcessType
+
+analyst = Role(name="分析师", goal="分析市场数据", tools=["web_search"])
+writer = Role(name="报告撰写", goal="生成分析报告")
+
+crew = Crew(name="分析团队", process=ProcessType.SEQUENTIAL)
+crew.add_role(analyst).add_role(writer)
+crew.add_task(CrewTask(description="收集数据", role=analyst))
+crew.add_task(CrewTask(description="写报告", role=writer))
+
+result = crew.kickoff()
+```
+
+### 🏷️ TypedAgent — 类型安全 Agent
+
+Pydantic AI 灵感类型安全工具定义。
+
+- **TypedTool**：装饰器定义类型安全工具，自动参数校验
+- **TypedAgent**：FastAPI 风格 Agent 定义
+- **StructuredOutput**：dataclass 驱动结构化输出
+- **自动类型转换**：str→int、str→float、str→bool 等
+
+```python
+from auto_agent_kit import TypedAgent, AgentConfig, TypedTool
+
+agent = TypedAgent(AgentConfig(name="助手", system_prompt="你是一个助手"))
+
+@agent.tool("add", "加法工具")
+def add(a: int, b: int) -> int:
+    return a + b
+
+result = agent.call_tool("add", a="3", b="4")  # 自动类型转换 → 7
 ```
 
 ## 模块详解

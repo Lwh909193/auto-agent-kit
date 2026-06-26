@@ -11,6 +11,20 @@ from auto_agent_kit.core.plugin import Plugin, PluginManager, LoggingPlugin, Met
 from auto_agent_kit.core.async_plan import AsyncPlanMode, AsyncStepResult, run_plan
 from auto_agent_kit.core.context_compressor import ContextCompressor, CompressionState
 from auto_agent_kit.core.task_lock import TaskLock, LockInfo, LockError
+from auto_agent_kit.core.typed_agent import (
+    TypedTool, TypedToolDef, TypedAgent, AgentConfig,
+    StructuredOutput,
+    validate_type, coerce_type, get_json_schema_from_type,
+)
+from auto_agent_kit.core.crew_role import (
+    Crew, Role, Task as CrewTask, CrewResult,
+    ProcessType,
+)
+from auto_agent_kit.core.state_graph import (
+    StateGraph, CompiledGraph, GraphNode, GraphEdge, Checkpoint,
+    NodeType, EdgeType,
+    create_sequential_workflow, create_agent_loop, create_branching_workflow
+)
 
 __all__ = [
     "PlanMode", "ExecutionPlan", "PlanStep", "StepStatus",
@@ -23,4 +37,12 @@ __all__ = [
     "AsyncPlanMode", "AsyncStepResult", "run_plan",
     "ContextCompressor", "CompressionState",
     "TaskLock", "LockInfo", "LockError",
+    "StateGraph", "CompiledGraph", "GraphNode", "GraphEdge", "Checkpoint",
+    "NodeType", "EdgeType",
+    "create_sequential_workflow", "create_agent_loop", "create_branching_workflow",
+    "Crew", "Role", "CrewTask", "CrewResult",
+    "ProcessType",
+    "TypedTool", "TypedToolDef", "TypedAgent", "AgentConfig",
+    "StructuredOutput",
+    "validate_type", "coerce_type", "get_json_schema_from_type",
 ]
